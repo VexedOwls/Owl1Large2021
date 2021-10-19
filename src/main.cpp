@@ -80,6 +80,9 @@ void opcontrol()
 	pros::Motor frontArmMove(1);
 	pros::Motor frontArmMove2(2);
 
+	//conveyor
+	pros::Motor swirlyDo(5);
+
 	frontArmMove.set_brake_mode(MOTOR_BRAKE_HOLD);
 	frontArmMove2.set_brake_mode(MOTOR_BRAKE_HOLD);
 
@@ -113,6 +116,26 @@ void opcontrol()
 			frontArmMove.move(0);
 			frontArmMove2.move(0);
 		}
+
+		//toggle conveyor
+		if(master.get_digital(DIGITAL_A))
+		{
+			doConveyor = !doConveyor;
+			pros::delay(2);
+		}
+
+		//
+		if(doConveyor)
+		{
+			swirlyDo.move(-76);
+			pros::lcd::set_text(1, "doConveyor is true");
+		}
+		else
+		{
+			swirlyDo.move(0);
+			pros::lcd::set_text(1, "doConveyor is false");
+		}
+
 		pros::delay(2);
 	}
 }
