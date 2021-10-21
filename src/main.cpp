@@ -76,18 +76,24 @@ void opcontrol()
 	pros::Motor backRight(18, true);
 	pros::Motor midRight(19);
 	pros::Motor frontRight(20, true);
-	//back arm
+	//Front arm
 	pros::Motor frontArmMove(1);
-	pros::Motor frontArmMove2(2);
-
+	pros::Motor frontArmMove2(10);
+	//Back arm
+	pros::Motor backArmMove(2);
+	pros::Motor backArmMove2(9);
+	//Top bar
+	pros::Motor topBar(6);
 	//conveyor
 	pros::Motor swirlyDo(5);
+	//
 
 	frontArmMove.set_brake_mode(MOTOR_BRAKE_HOLD);
 	frontArmMove2.set_brake_mode(MOTOR_BRAKE_HOLD);
 
 	bool doConveyor = false;
-
+	int delayCounter = 0;
+	//TODO: Sofia's incrementor inside A button event idea, don't toggle if increment is more than 1, yknow how it is
 	while (true)
 	{
 		int leftInput = master.get_analog(ANALOG_LEFT_Y);
@@ -117,17 +123,50 @@ void opcontrol()
 			frontArmMove2.move(0);
 		}
 
-		//toggle conveyor
-		if(master.get_digital(DIGITAL_A))
+		if (master.get_digital(DIGITAL_R1))
 		{
-			doConveyor = !doConveyor;
-			pros::delay(2);
+			backArmMove.move(-127);
+			backArmMove2.move(127);
+		}
+		else if (master.get_digital(DIGITAL_R2))
+		{
+			backArmMove.move(127);
+			backArmMove2.move(-127);
+		}
+		else
+		{
+			backArmMove.move(0);
+			backArmMove2.move(0);
+		}
+
+		if(master.get_digital(DIGITAL_UP))
+		{
+			topBar.move(127);
+		}
+		else if(master.get_digital(DIGITAL_DOWN))
+		{
+			topBar.move(-127);
+		}
+		else
+		{
+			topBar.move(0);
+		}
+
+		//toggle conveyor
+		if (master.get_digital(DIGITAL_A))
+		{
+			delayCounter++; //this is an int set to 0 outside of the main while(true) loop
+		}
+		else if (delayCounter >= 10) //if we have been holding down the A button for 10 or more loops, and we let go:
+		{
+			doConveyor = !doConveyor; //invert the doConveyor boolean
+			delayCounter = 0;		  //reset the delayCounter
 		}
 
 		//
-		if(doConveyor)
+		if (doConveyor)
 		{
-			swirlyDo.move(-76);
+			swirlyDo.move(-90);
 			pros::lcd::set_text(1, "doConveyor is true");
 		}
 		else
