@@ -1,6 +1,5 @@
 #include "main.h"
 
-
 /**
  * Runs the operator control code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -44,7 +43,10 @@ void opcontrol()
 	backArmMove.set_brake_mode(MOTOR_BRAKE_HOLD);
 	backArmMove2.set_brake_mode(MOTOR_BRAKE_HOLD);
 	topBar.set_brake_mode(MOTOR_BRAKE_HOLD);
-	
+
+	bool state = 0;
+	pros::ADIDigitalOut actuator(1, state);
+
 	bool doConveyor = false;
 	int delayCounter = 0;
 	//TODO: Sofia's incrementor inside A button event idea, don't toggle if increment is more than 1, yknow how it is
@@ -93,11 +95,11 @@ void opcontrol()
 			backArmMove2.move(0);
 		}
 
-		if(master.get_digital(DIGITAL_UP))
+		if (master.get_digital(DIGITAL_UP))
 		{
 			topBar.move(127);
 		}
-		else if(master.get_digital(DIGITAL_DOWN))
+		else if (master.get_digital(DIGITAL_DOWN))
 		{
 			topBar.move(-127);
 		}
@@ -127,6 +129,17 @@ void opcontrol()
 		{
 			swirlyDo.move(0);
 			pros::lcd::set_text(1, "doConveyor is false");
+		}
+
+		if (master.get_digital(DIGITAL_B))
+		{
+			state = 1;
+			actuator.set_value(state);
+		}
+		else
+		{
+			state = 0;
+			actuator.set_value(state);
 		}
 
 		pros::delay(2);
