@@ -1,5 +1,4 @@
 #include "robotBase.h"
-
 RobotBase::RobotBase(Motor* _r1, Motor* _r2, Motor* _r3, Motor* _l1, Motor* _l2, Motor* _l3)
 {
   right1 = _r1;
@@ -59,7 +58,7 @@ void RobotBase::moveTo_Vision(int distance, Vision* vision, int maxDist, int sto
   double kP = 0.5; // 0.25
   double kI = 0.1; // 0.001
   double kD = 0.5; // 0.1
-  double kV = 1; // 0.1
+  double kV = 0; // 0.1
   int integral = 0;
   int previous_error = distance;
   int error = distance;
@@ -87,8 +86,7 @@ void RobotBase::moveTo_Vision(int distance, Vision* vision, int maxDist, int sto
 
     averageSpeed = mean(rightSpeed, leftSpeed);
     move(rightSpeed, leftSpeed);
-    std::cout <<    error<<" | "<<error*kP<<" "<<integral*kI<<" "<<derivative*kD<<" "<<cameraError*kV<<" | "<<rightSpeed<<" "<<leftSpeed    << std::endl;
-
+    // std::cout <<    error<<" | "<<error*kP<<" "<<integral*kI<<" "<<derivative*kD<<" "<<cameraError*kV<<" | "<<rightSpeed<<" "<<leftSpeed    << std::endl;
     delay(10);
   }
 
