@@ -4,7 +4,7 @@
 #include "robotBase.h"
 using namespace pros;
 
-#define intakeSpeed_topBarUp 127
+#define intakeSpeed_topBarUp 110
 #define intakeSpeed_topBarDown 90
 
 void opcontrol()
@@ -55,7 +55,7 @@ void opcontrol()
   pros::ADIDigitalOut actuator(1, state);
 
   bool backClaw_state = 0;
-  pros::ADIDigitalOut backClaw_actuator('E', state);
+  pros::ADIDigitalOut backClaw_actuator('B', state);
 
   bool doConveyor = false;
   bool doNeedle = false;
