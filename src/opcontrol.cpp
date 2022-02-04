@@ -19,10 +19,6 @@ void opcontrol()
   Motor *rI_roller = new Motor(5);
   RingIntake rI(rI_roller);
 
-  Vision vision_sensor(17);
-  vision_signature_s_t YELLOW_SIG = Vision::signature_from_utility(1, -361, 1351, 495, -3999, -2953, -3476, 2.600, 0);
-  vision_sensor.set_signature(1, &YELLOW_SIG);
-
   pros::Controller master(pros::E_CONTROLLER_MASTER);
 
   //TODO: remove placeholder port nums
