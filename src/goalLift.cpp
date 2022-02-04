@@ -43,6 +43,26 @@ void GoalLift::moveTowards(int target, int current)
   }
 };
 
+void GoalLift::moveToLoop(int target)
+{
+  if (  (potentiometer->get_value()-target)>marginOfError  )
+  {
+    leftMotor->move(-127);
+    rightMotor->move(127);
+
+    while( (potentiometer->get_value()-target)>marginOfError ) { delay(10); }
+  }
+  else if (  (potentiometer->get_value()-target)<-marginOfError  )
+  {
+    leftMotor->move(127);
+    rightMotor->move(-127);
+
+    while( (potentiometer->get_value()-target)<-marginOfError ) { delay(10); }
+  }
+  leftMotor->move(0);
+  rightMotor->move(0);
+};
+
 
 
 // Return true when a goal is present in the lifter

@@ -133,10 +133,10 @@ void RobotBase::movePID(int distance, int maxDist)
 
 void RobotBase::moveGyro(int distance, Imu* imu, bool console, int precision)
 {
-  double kP = 0.4;    // 0.3
-  double kPi = 0.05;   // 0.1
-  double kD = 0.15;
-  double kG = 4;      // 4
+  double kP = 0.45;    // 0.4
+  double kPi = 0.05;   // 0.05
+  double kD = 0.5;   // 0.15
+  double kG = 4.25;      // 4
   double kGi = 0.3;   // 0.3
 
   imu->set_heading(180);
@@ -158,14 +158,14 @@ void RobotBase::moveGyro(int distance, Imu* imu, bool console, int precision)
 
     if (abs(error) < 2) { errorIntegral = 0; }
     if (abs(error) > 40) { errorIntegral = 0; }
-    if (std::abs(angleError) < 0.05) { angleErrorIntegral = 0; }
-    if (std::abs(angleError) > 5) { angleErrorIntegral = 0; }
+    if (std::abs(angleError) < 0.3) { angleErrorIntegral = 0; }
+    if (std::abs(angleError) > 10) { angleErrorIntegral = 0; }
 
     derivative = error - previousError;
     previousError = error;
 
-    int rightSpeed = clamp(kP*error, 127, -127) + kPi*errorIntegral + kG*angleError + kGi*angleErrorIntegral + kD*derivative;
-    int leftSpeed  = clamp(kP*error, 127, -127) + kPi*errorIntegral - kG*angleError - kGi*angleErrorIntegral + kD*derivative;
+    int rightSpeed = clamp(kP*error, 127, -127) + kPi*errorIntegral - kG*angleError - kGi*angleErrorIntegral + kD*derivative;
+    int leftSpeed  = clamp(kP*error, 127, -127) + kPi*errorIntegral + kG*angleError + kGi*angleErrorIntegral + kD*derivative;
 
     move(rightSpeed, leftSpeed);
 
@@ -186,9 +186,9 @@ void RobotBase::moveGyro(int distance, Imu* imu, bool console, int precision)
 
 void RobotBase::turnGyro(double target, Imu* imu, bool console, double precision)
 { // 28.25
-  double kP = 2;      // 3
-  double kPi = 0.17;   // 0.1
-  double kD = 0.2;
+  double kP = 2.2;      // 3
+  double kPi = 0.3;   // 0.1
+  double kD = 4.2;    // 2.2
 
   imu->set_heading(180);
   target = target+180;
@@ -202,17 +202,17 @@ void RobotBase::turnGyro(double target, Imu* imu, bool console, double precision
     error = target - imu->get_heading();
     errorIntegral = errorIntegral + error;
 
-    if (std::abs(error) < 0.02) { errorIntegral = 0; }
+    if (std::abs(error) < precision) { errorIntegral = 0; }
     if (std::abs(error) > 10) { errorIntegral = 0; }
 
     derivative = error - previousError;
     previousError = error;
 
-    int rightSpeed =  (clamp(kP*error, 50, -50) + kPi*errorIntegral + kD*derivative);
-    int leftSpeed  = -(clamp(kP*error, 50, -50) + kPi*errorIntegral + kD*derivative);
+    int rightSpeed = -(clamp(kP*error, 100, -100) + kPi*errorIntegral + kD*derivative);
+    int leftSpeed  =  (clamp(kP*error, 100, -100) + kPi*errorIntegral + kD*derivative);
     move(rightSpeed, leftSpeed);
 
-    if (console) { std::cout<<error<<" | "<<clamp(kP*error, 50, -50)<<" "<<kPi*errorIntegral<<" "<<kD*derivative<<" | "<<rightSpeed<<std::endl; }
+    if (console) { std::cout<<error<<" | "<<clamp(kP*error, 100, -100)<<" "<<kPi*errorIntegral<<" "<<kD*derivative<<" | "<<rightSpeed<<std::endl; }
 
     delay(10);
   }

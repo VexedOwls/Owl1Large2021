@@ -20,6 +20,13 @@ void autonomous()
 {
 	Imu imu(16);
 
+	Motor *gL_right = new Motor(10);
+	Motor *gL_left = new Motor(1);
+	ADIPotentiometer *gL_pot = new ADIPotentiometer('C');
+	ADILineSensor *gL_sensor = new ADILineSensor('D');
+	GoalLift gL(gL_right, gL_left, gL_pot, gL_sensor);
+	gL.setBrake(MOTOR_BRAKE_HOLD);
+
 
     //Back arm
     Motor backArmMove(4);
@@ -66,17 +73,51 @@ void autonomous()
 
 	if (selector::auton == middleRed || selector::auton == middleBlue)
 	{
-        claw.set_value(1);
+        claw.set_value(0);
 
-		base.moveGyro(-43 _INCHES, &imu, true);
+		base.moveGyro(-45 _INCHES, &imu, false);
+
+		claw.set_value(1);
+
+		base.moveGyro(29 _INCHES, &imu, false);
+
+		base.turnGyro(80, &imu, true);
+
+		base.moveGyro(-8 _INCHES, &imu, true);
 
 		claw.set_value(0);
 
-		base.moveGyro(28 _INCHES, &imu, true);
+		base.moveGyro(13 _INCHES, &imu, true);
 
-		actuator.set_value(1);
-		delay(200);
+		base.turnGyro(-90, &imu, true);
 
-		
+		base.moveGyro(13 _INCHES, &imu, false);
+
+		base.turnGyro(-65, &imu, false);
+
+		topBar.move_relative(1600, 127);
+
+		gL.moveToLoop(gL.bottomPos);
+
+		base.moveGyro(12 _INCHES, &imu, false);				// goal 2
+
+		gL.moveToLoop(gL.goalPos);
+
+		base.moveGyro(-12 _INCHES, &imu, false);
+
+		base.turnGyro(65, &imu, false);
+
+		swirlyDo.move(-115);								// start intake
+
+		for (int i = 0; i < 12; i++)
+		{
+			base.moveGyro(-14 _INCHES, &imu, false);
+
+			base.moveGyro(14 _INCHES, &imu, false);
+		}
+
+		delay(5000);
+
+		swirlyDo.move(0);
 	}
 }

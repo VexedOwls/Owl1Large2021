@@ -25,6 +25,7 @@ class GoalLift
     bool goalPresent();
     int potVal();
     void stop();
+    void moveToLoop(int target);
 };
 
 #endif
