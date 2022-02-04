@@ -21,26 +21,53 @@ void RobotBase::move(int rightPower, int leftPower)
   left3->move(leftPower);
 };
 
-
-
-//316
-//212
-
-void RobotBase::testVis(Vision* vision)
+void RobotBase::resetPos()
 {
-  vision_object_s_t largestObj = vision->get_by_sig(0, 1);
-
-  int error = 158 - largestObj.x_middle_coord;
-  if (abs(error) > 5)
-  {
-    move(error, -error);
-  }
-  else
-  {
-    move(-50, -50);
-  }
-  std::cout << largestObj.x_middle_coord<<" "<<error << std::endl;
+  right1->tare_position();
+  right2->tare_position();
+  right3->tare_position();
+  left1->tare_position();
+  left2->tare_position();
+  left3->tare_position();
 };
+
+
+
+int max(int a, int b, int c)
+{  return std::max(std::max(a, b), c);  }
+
+int min(int a, int b, int c)
+{  return std::min(std::min(a, b), c);  }
+
+int RobotBase::minRightMeasure()
+{
+  if(max(right1->get_position(), right2->get_position(), right3->get_position()) < 0)
+  { return min(right1->get_position(), right2->get_position(), right3->get_position()); }
+  return max(right1->get_position(), right2->get_position(), right3->get_position());
+};
+
+int RobotBase::minLeftMeasure()
+{
+  if(max(left1->get_position(), left2->get_position(), left3->get_position()) < 0)
+  { return min(left1->get_position(), left2->get_position(), left3->get_position()); }
+  return max(left1->get_position(), left2->get_position(), left3->get_position());
+};
+
+int RobotBase::rightMaxError(int target)
+{
+  if ((target/std::abs(target)) == -1)
+  {  return min(target - right1->get_position(), target - right2->get_position(), target - right3->get_position());  }
+  return max(target - right1->get_position(), target - right2->get_position(), target - right3->get_position());
+
+};
+
+int RobotBase::leftMaxError(int target)
+{
+  if ((target/std::abs(target)) == -1)
+  {  return min(target - left1->get_position(), target - left2->get_position(), target - left3->get_position());  }
+  return max(target - left1->get_position(), target - left2->get_position(), target - left3->get_position());
+};
+
 
 
 int mean(int val1, int val2)
@@ -54,23 +81,28 @@ int clamp(int val, int max, int min)
 }
 
 
-void RobotBase::moveTo_Vision(int distance, Vision* vision, int maxDist, int stopSpeed)
+
+
+
+
+
+
+
+void RobotBase::movePID(int distance, int maxDist)
 {
-  double kP = 0.5; // 0.25
-  double kI = 0.1; // 0.001
-  double kD = 0.5; // 0.1
-  double kV = 1; // 0.1
+  double kP = 0.6; // 0.5
+  double kI = 0.05; // 0.1
+  double kD = 0.25; // 0.5
   int integral = 0;
   int previous_error = distance;
   int error = distance;
   int averageSpeed = 0;
 
-  right1->tare_position();
-  left1->tare_position();
+  resetPos();
 
   while(   abs(error)>maxDist   )  //  ||   abs(averageSpeed)>stopSpeed
   {
-    error = distance - mean(right1->get_position(), left1->get_position());
+    error = distance - mean( minRightMeasure(), minLeftMeasure() );
     integral = integral + error;
 
     if (abs(error) < 2) { integral = 0; }
@@ -79,18 +111,111 @@ void RobotBase::moveTo_Vision(int distance, Vision* vision, int maxDist, int sto
     int derivative = error - previous_error;
     previous_error = error;
 
-    vision_object_s_t largestObj = vision->get_by_sig(0, 1);
-    int cameraError = 158 - largestObj.x_middle_coord;
+    int rightSpeed = clamp(kP*error, 127, -127) + kI*integral + kD*derivative;
+    int leftSpeed  = clamp(kP*error, 127, -127) + kI*integral + kD*derivative;
 
-    int rightSpeed = clamp(kP*error, 200, -200) + kI*integral + kD*derivative + kV*cameraError;
-    int leftSpeed  = clamp(kP*error, 200, -200) + kI*integral + kD*derivative - kV*cameraError;
-
-    averageSpeed = mean(rightSpeed, leftSpeed);
     move(rightSpeed, leftSpeed);
-    std::cout <<    error<<" | "<<error*kP<<" "<<integral*kI<<" "<<derivative*kD<<" "<<cameraError*kV<<" | "<<rightSpeed<<" "<<leftSpeed    << std::endl;
+    std::cout <<    error<<" | "<<clamp(error*kP, 127, -127)<<" "<<integral*kI<<" "<<derivative*kD<<" | "<<rightSpeed<<" "<<leftSpeed    << std::endl;
 
     delay(10);
   }
 
   move(0, 0);
+};
+
+
+
+
+
+
+
+
+
+void RobotBase::moveGyro(int distance, Imu* imu, bool console, int precision)
+{
+  double kP = 0.45;    // 0.4
+  double kPi = 0.05;   // 0.05
+  double kD = 0.5;   // 0.15
+  double kG = 4.25;      // 4
+  double kGi = 0.3;   // 0.3
+
+  imu->set_heading(180);
+  resetPos();
+
+  int error = distance;
+  int previousError = distance;
+  int errorIntegral = 0;
+  int derivative = error - previousError;
+  double angleError = 0;
+  double angleErrorIntegral = 0;
+
+  while ( abs(error) > precision )
+  {
+    error = mean( rightMaxError(distance), leftMaxError(distance) );
+    errorIntegral = errorIntegral + error;
+    angleError = 180 - imu->get_heading(); // ++R == -aE
+    angleErrorIntegral = angleErrorIntegral + angleError;
+
+    if (abs(error) < 2) { errorIntegral = 0; }
+    if (abs(error) > 40) { errorIntegral = 0; }
+    if (std::abs(angleError) < 0.3) { angleErrorIntegral = 0; }
+    if (std::abs(angleError) > 10) { angleErrorIntegral = 0; }
+
+    derivative = error - previousError;
+    previousError = error;
+
+    int rightSpeed = clamp(kP*error, 127, -127) + kPi*errorIntegral - kG*angleError - kGi*angleErrorIntegral + kD*derivative;
+    int leftSpeed  = clamp(kP*error, 127, -127) + kPi*errorIntegral + kG*angleError + kGi*angleErrorIntegral + kD*derivative;
+
+    move(rightSpeed, leftSpeed);
+
+    if (console) {
+      // std::cout<< rightMaxError(distance)<<" "<<right1->get_position()<<" "<<right2->get_position()<<" "<<right3->get_position() <<std::endl;
+      std::cout<< error<<" "<<angleError<<" | "<<clamp(kP*error, 127, -127)<<" "<<kPi*errorIntegral<<" "<<kG*angleError<<" "<<kGi*angleErrorIntegral<<" "<<kD*derivative<<" | "<<rightSpeed<<" "<<leftSpeed <<std::endl;
+      // std::cout<< right1->get_position()<<" "<<right2->get_position()<<" "<<right3->get_position()<<" "<<left1->get_position()<<" "<<left2->get_position()<<" "<<left3->get_position() <<std::endl;
+    }
+
+    delay(10);
+  }
+  move(0, 0);
+  if (console) { std::cout << "PIGI Complete...\n\n\n\n" << std::endl; }
+};
+
+
+
+
+void RobotBase::turnGyro(double target, Imu* imu, bool console, double precision)
+{ // 28.25
+  double kP = 2.2;      // 3
+  double kPi = 0.3;   // 0.1
+  double kD = 4.2;    // 2.2
+
+  imu->set_heading(180);
+  target = target+180;
+  double error = target-180;
+  double errorIntegral = 0;
+  double previousError = error;
+  double derivative = error - previousError;
+
+  while( std::abs(error) > precision )
+  {
+    error = target - imu->get_heading();
+    errorIntegral = errorIntegral + error;
+
+    if (std::abs(error) < precision) { errorIntegral = 0; }
+    if (std::abs(error) > 10) { errorIntegral = 0; }
+
+    derivative = error - previousError;
+    previousError = error;
+
+    int rightSpeed = -(clamp(kP*error, 100, -100) + kPi*errorIntegral + kD*derivative);
+    int leftSpeed  =  (clamp(kP*error, 100, -100) + kPi*errorIntegral + kD*derivative);
+    move(rightSpeed, leftSpeed);
+
+    if (console) { std::cout<<error<<" | "<<clamp(kP*error, 100, -100)<<" "<<kPi*errorIntegral<<" "<<kD*derivative<<" | "<<rightSpeed<<std::endl; }
+
+    delay(10);
+  }
+  move(0, 0);
+  if (console) { std::cout<<"Rotation done...\n\n\n\n"<<std::endl; }
 };

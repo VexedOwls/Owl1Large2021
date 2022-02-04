@@ -1,4 +1,5 @@
 #include "main.h"
+#include "autoSelect/selection.h"
 
 /**
  * A callback function for LLEMU's center button.
@@ -15,8 +16,7 @@
  */
 void initialize()
 {
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "largeboy activated");
+	selector::init();
 }
 
 /**

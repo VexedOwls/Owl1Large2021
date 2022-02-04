@@ -44,7 +44,7 @@ void autonomous()
 
     ADIDigitalOut needle('A', 0);
     ADIDigitalOut claw('B', 0);
-	
+
 	Motor backRight(18, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
 	Motor midRight(19, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
 	Motor frontRight(20, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
@@ -64,7 +64,54 @@ void autonomous()
 
 	if (selector::auton == skills)
 	{
-		
+		claw.set_value(0);
+
+base.moveGyro(-45 _INCHES, &imu, false);
+
+claw.set_value(1);
+
+base.moveGyro(29 _INCHES, &imu, false);
+
+base.turnGyro(80, &imu, true);
+
+base.moveGyro(-8 _INCHES, &imu, true);
+
+claw.set_value(0);
+
+base.moveGyro(13 _INCHES, &imu, true);
+
+base.turnGyro(-90, &imu, true);
+
+base.moveGyro(13 _INCHES, &imu, false);
+
+base.turnGyro(-65, &imu, false);
+
+topBar.move_relative(1600, 127);
+
+gL.moveToLoop(gL.bottomPos);
+
+base.moveGyro(12 _INCHES, &imu, false);				// goal 2
+
+gL.moveToLoop(gL.goalPos);
+
+base.moveGyro(-12 _INCHES, &imu, false);
+
+base.turnGyro(65, &imu, false);
+
+swirlyDo.move(-90);
+
+for (int i = 0; i < 15; i++)
+{
+	base.moveGyro(-14 _INCHES, &imu, false);
+
+	base.moveGyro(14 _INCHES, &imu, false);
+}
+
+delay(5000);
+
+swirlyDo.move(0);
+
+base.moveGyro(-100 _INCHES, &imu, false);
 	}
 
 
@@ -107,7 +154,7 @@ void autonomous()
 
 		base.turnGyro(65, &imu, false);
 
-		swirlyDo.move(-115);								// start intake
+		swirlyDo.move(-100);								// start intake
 
 		for (int i = 0; i < 12; i++)
 		{

@@ -10,7 +10,7 @@ using namespace pros;
 
 
 
-#define intakeSpeed_topBarUp 127
+#define intakeSpeed_topBarUp 90
 #define intakeSpeed_topBarDown 90
 
 
@@ -40,7 +40,7 @@ void opcontrol_test()
   vision_sensor.set_exposure(20);
 
   RobotBase rBase(&backRight, &midRight, &frontRight, &backLeft, &midLeft, &frontLeft);
-  rBase.moveTo_Vision(-1670, &vision_sensor);
+  //rBase.moveTo_Vision(-1670, &vision_sensor);
 
   delay(2);
 }
@@ -101,7 +101,7 @@ void opcontrol()
 
 
    bool backClaw_state = 0;
-   pros::ADIDigitalOut backClaw_actuator('E', state);
+   pros::ADIDigitalOut backClaw_actuator('B', state);
 
    bool doConveyor = false;
    bool doNeedle = false;
@@ -191,9 +191,14 @@ void opcontrol()
         // Lift
         if (master.get_digital(DIGITAL_R1))
         {
-          if (topBar.get_position() < 300)
+          if (topBar.get_position() <= 1000)
           {
-            topBar.move(127);
+            topBar.move(200);
+          }
+          else if (topBar.get_position() <= 2500){
+            topBar.move(200);
+            backArmMove.move(127);
+            backArmMove2.move(-127);
           }
           else
           {

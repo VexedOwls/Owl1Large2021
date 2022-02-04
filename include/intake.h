@@ -15,7 +15,7 @@ public:
 
   Motor* intakeRoller;
 
-  RingIntake(Motor* _intake, int _lowBar = 115, int _highBar = 90, int _barPos = -100);
+  RingIntake(Motor* _intake, int _lowBar = 95, int _highBar = 90, int _barPos = -100);
 
   void run(int topBarPos);
   void move_topBar(int topBarPos);
